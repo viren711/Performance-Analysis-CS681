@@ -1,5 +1,6 @@
 sudo apt install automake libtool
 
+https://chatgpt.com/share/69693003-e464-800b-8521-6b90b1a230aa
 
 curl http://10.53.6.159/test.php
 

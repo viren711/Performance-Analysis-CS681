@@ -10,7 +10,7 @@
 
   <!-- Your Apache web server -->
   <servers>
-    <server host="10.53.6.159" port="80" type="tcp"/>
+    <server host="10.51.5.140" port="80" type="tcp"/>
   </servers>
 
   <!-- Closed workload definition -->
