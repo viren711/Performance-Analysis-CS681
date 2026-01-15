@@ -1,9 +1,58 @@
 sudo apt install automake libtool
 
 
+curl http://10.53.6.159/test.php
 
 
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/usr/share/tsung/tsung-1.0.dtd">
 
+<tsung loglevel="notice" version="1.0">
+
+  <!-- Where Tsung runs -->
+  <clients>
+    <client host="localhost" maxusers="100"/>
+  </clients>
+
+  <!-- Your Apache web server -->
+  <servers>
+    <server host="10.53.6.159" port="80" type="tcp"/>
+  </servers>
+
+  <!-- Closed workload definition -->
+  <load duration="300" unit="second">
+    <arrivalphase phase="1" duration="300" unit="second">
+      <!-- Total users in the system -->
+      <users maxnumber="20" arrivalrate="5" unit="second"/>
+    </arrivalphase>
+  </load>
+
+  <!-- User behavior -->
+  <sessions>
+    <session probability="100" name="webtest" type="ts_http">
+
+      <!-- One HTTP request -->
+      <transaction name="request">
+        <request>
+          <http url="/test.php" version="1.1"/>
+        </request>
+      </transaction>
+
+      <!-- Think time (important for closed system) -->
+      <thinktime value="6"/>
+
+    </session>
+  </sessions>
+
+</tsung>
+
+
+/usr/lib/x86_64-linux-gnu/tsung/bin/tsung_stats.pl
+
+
+shikhar-rai@shikhar-rai-ThinkPad-E16-Gen-3:~/.tsung/log/20260115-2336$ sudo find / -name tsung_stats.pl 2>/dev/null
+[sudo] password for shikhar-rai: 
+/usr/lib/x86_64-linux-gnu/tsung/bin/tsung_stats.pl
 
 
 hostname -I
