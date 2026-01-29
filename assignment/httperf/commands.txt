@@ -5,6 +5,13 @@ https://chatgpt.com/share/69693003-e464-800b-8521-6b90b1a230aa
 curl http://10.53.6.159/test.php
 
 
+netsh interface portproxy add v4tov4 `
+ listenaddress=0.0.0.0 listenport=8000 `
+ connectaddress=172.31.235.156 connectport=8000
+
+netsh interface portproxy show all
+
+
 <?xml version="1.0"?>
 <!DOCTYPE tsung SYSTEM "/usr/share/tsung/tsung-1.0.dtd">
 
