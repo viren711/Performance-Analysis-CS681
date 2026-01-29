@@ -3,58 +3,45 @@
 
 <tsung loglevel="notice" version="1.0">
 
-  <!-- Where Tsung runs -->
+  <!-- Load generator location -->
   <clients>
-    <client host="localhost" maxusers="100"/>
+    <client host="localhost" maxusers="200"/>
   </clients>
 
-  <!-- Your Apache web server -->
+  <!-- Web server (Windows machine) -->
   <servers>
-    <server host="10.51.5.140" port="80" type="tcp"/>
+    <server host="10.51.29.70" port="80" type="tcp"/>
   </servers>
 
-  <!-- Closed workload definition -->
-  <load duration="300" unit="second">
-    <arrivalphase phase="1" duration="300" unit="second">
-      <!-- Total users in the system -->
-      <users maxnumber="20" arrivalrate="5" unit="second"/>
+  <!-- Long duration to guarantee steady state -->
+  <load duration="600" unit="second">
+    <arrivalphase phase="1" duration="600" unit="second">
+
+      <!-- Moderate population -->
+      <users maxnumber="30" arrivalrate="30" unit="second"/>
+
     </arrivalphase>
   </load>
 
+  <!-- Closed user behavior -->
   <sessions>
-  <session probability="100" name="webtest" type="ts_http">
+    <session probability="100" name="closed_users" type="ts_http">
 
-    <for from="1" to="1000000" var="i">
+      <!-- Infinite circulation -->
+      <for from="1" to="1000000000" var="i">
 
-      <transaction name="request">
-        <request>
-          <http url="/test.php" version="1.1"/>
-        </request>
-      </transaction>
+        <transaction name="http_request">
+          <request>
+            <http url="/test.php" version="1.1"/>
+          </request>
+        </transaction>
 
-      <thinktime value="6"/>
+        <!-- Non-zero think time -->
+        <thinktime value="8"/>
 
-    </for>
-
-  </session>
-</sessions>
-
-
-
-
-  <!-- User behavior -->
-  <!-- <sessions>
-    <session probability="100" name="webtest" type="ts_http">
-
-      <transaction name="request">
-        <request>
-          <http url="/test.php" version="1.1"/>
-        </request>
-      </transaction>
-
-      <thinktime value="6"/>
+      </for>
 
     </session>
-  </sessions> -->
+  </sessions>
 
 </tsung>
