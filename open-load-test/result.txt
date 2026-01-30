@@ -1,0 +1,290 @@
+Starting httperf open-load experiments
+=====================================
+
+===== RATE: 200 req/s =====
+Fri Jan 30 07:12:17 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=200 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 1
+
+Total: connections 5000 requests 5000 replies 5000 test-duration 25.041 s
+
+Connection rate: 199.7 conn/s (5.0 ms/conn, <=54 concurrent connections)
+Connection time [ms]: min 10.2 avg 56.9 max 1120.5 median 53.5 stddev 44.8
+Connection time [ms]: connect 31.6
+Connection length [replies/conn]: 1.000
+
+Request rate: 199.7 req/s (5.0 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 197.8 avg 199.6 max 201.6 stddev 1.3 (5 samples)
+Reply time [ms]: response 25.2 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=5000 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 18.01 system 6.94 (user 71.9% system 27.7% total 99.6%)
+Net I/O: 65.9 KB/s (0.5*10^6 bps)
+
+Errors: total 0 client-timo 0 socket-timo 0 connrefused 0 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 300 req/s =====
+Fri Jan 30 07:13:02 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=300 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 1
+
+Total: connections 5000 requests 5000 replies 5000 test-duration 16.752 s
+
+Connection rate: 298.5 conn/s (3.4 ms/conn, <=106 concurrent connections)
+Connection time [ms]: min 11.4 avg 93.0 max 1191.9 median 83.5 stddev 79.2
+Connection time [ms]: connect 40.1
+Connection length [replies/conn]: 1.000
+
+Request rate: 298.5 req/s (3.4 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 295.4 avg 298.5 max 300.4 stddev 2.7 (3 samples)
+Reply time [ms]: response 52.8 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=5000 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 12.07 system 4.66 (user 72.0% system 27.8% total 99.9%)
+Net I/O: 98.4 KB/s (0.8*10^6 bps)
+
+Errors: total 0 client-timo 0 socket-timo 0 connrefused 0 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 400 req/s =====
+Fri Jan 30 07:13:39 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=400 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 1
+
+Total: connections 5000 requests 5000 replies 5000 test-duration 47.475 s
+
+Connection rate: 105.3 conn/s (9.5 ms/conn, <=185 concurrent connections)
+Connection time [ms]: min 11.2 avg 279.7 max 36593.6 median 95.5 stddev 2432.5
+Connection time [ms]: connect 219.6
+Connection length [replies/conn]: 1.000
+
+Request rate: 105.3 req/s (9.5 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 0.0 avg 110.8 max 401.6 stddev 174.7 (9 samples)
+Reply time [ms]: response 60.1 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=5000 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 32.04 system 15.39 (user 67.5% system 32.4% total 99.9%)
+Net I/O: 34.7 KB/s (0.3*10^6 bps)
+
+Errors: total 0 client-timo 0 socket-timo 0 connrefused 0 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 500 req/s =====
+Fri Jan 30 07:14:47 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=500 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 1
+
+Total: connections 5000 requests 5000 replies 5000 test-duration 10.078 s
+
+Connection rate: 496.1 conn/s (2.0 ms/conn, <=147 concurrent connections)
+Connection time [ms]: min 16.2 avg 109.2 max 3327.4 median 85.5 stddev 146.1
+Connection time [ms]: connect 58.3
+Connection length [replies/conn]: 1.000
+
+Request rate: 496.1 req/s (2.0 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 492.8 avg 498.0 max 503.2 stddev 7.4 (2 samples)
+Reply time [ms]: response 50.9 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=5000 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 7.19 system 2.86 (user 71.4% system 28.4% total 99.8%)
+Net I/O: 163.7 KB/s (1.3*10^6 bps)
+
+Errors: total 0 client-timo 0 socket-timo 0 connrefused 0 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 600 req/s =====
+Fri Jan 30 07:15:17 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=600 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 1
+
+Total: connections 5000 requests 5000 replies 5000 test-duration 8.446 s
+
+Connection rate: 592.0 conn/s (1.7 ms/conn, <=183 concurrent connections)
+Connection time [ms]: min 16.4 avg 112.8 max 1204.9 median 98.5 stddev 86.4
+Connection time [ms]: connect 54.1
+Connection length [replies/conn]: 1.000
+
+Request rate: 592.0 req/s (1.7 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 591.2 avg 591.2 max 591.2 stddev 0.0 (1 samples)
+Reply time [ms]: response 58.7 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=5000 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 5.87 system 2.49 (user 69.5% system 29.5% total 99.0%)
+Net I/O: 195.3 KB/s (1.6*10^6 bps)
+
+Errors: total 0 client-timo 0 socket-timo 0 connrefused 0 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 700 req/s =====
+Fri Jan 30 07:15:45 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=700 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 1
+
+Total: connections 5000 requests 4317 replies 4317 test-duration 8.130 s
+
+Connection rate: 615.0 conn/s (1.6 ms/conn, <=1316 concurrent connections)
+Connection time [ms]: min 12.6 avg 967.0 max 7691.4 median 960.5 stddev 903.9
+Connection time [ms]: connect 326.9
+Connection length [replies/conn]: 1.000
+
+Request rate: 531.0 req/s (1.9 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 469.2 avg 469.2 max 469.2 stddev 0.0 (1 samples)
+Reply time [ms]: response 616.9 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=4317 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 5.71 system 2.40 (user 70.3% system 29.5% total 99.8%)
+Net I/O: 175.2 KB/s (1.4*10^6 bps)
+
+Errors: total 683 client-timo 0 socket-timo 0 connrefused 683 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 800 req/s =====
+Fri Jan 30 07:16:13 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=800 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 1
+
+Total: connections 5000 requests 5000 replies 5000 test-duration 7.027 s
+
+Connection rate: 711.5 conn/s (1.4 ms/conn, <=211 concurrent connections)
+Connection time [ms]: min 15.6 avg 108.7 max 1127.4 median 95.5 stddev 77.5
+Connection time [ms]: connect 50.2
+Connection length [replies/conn]: 1.000
+
+Request rate: 711.5 req/s (1.4 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 771.2 avg 771.2 max 771.2 stddev 0.0 (1 samples)
+Reply time [ms]: response 58.5 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=5000 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 4.74 system 2.21 (user 67.4% system 31.4% total 98.8%)
+Net I/O: 234.7 KB/s (1.9*10^6 bps)
+
+Errors: total 0 client-timo 0 socket-timo 0 connrefused 0 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 900 req/s =====
+Fri Jan 30 07:16:40 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=900 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 1
+
+Total: connections 5000 requests 5000 replies 5000 test-duration 6.645 s
+
+Connection rate: 752.5 conn/s (1.3 ms/conn, <=253 concurrent connections)
+Connection time [ms]: min 19.0 avg 140.8 max 1227.2 median 115.5 stddev 130.5
+Connection time [ms]: connect 61.5
+Connection length [replies/conn]: 1.000
+
+Request rate: 752.5 req/s (1.3 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 884.6 avg 884.6 max 884.6 stddev 0.0 (1 samples)
+Reply time [ms]: response 79.2 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=5000 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 4.61 system 2.03 (user 69.3% system 30.5% total 99.8%)
+Net I/O: 248.2 KB/s (2.0*10^6 bps)
+
+Errors: total 0 client-timo 0 socket-timo 0 connrefused 0 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 1000 req/s =====
+Fri Jan 30 07:17:07 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=1000 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 3
+
+Total: connections 5000 requests 5000 replies 5000 test-duration 5.939 s
+
+Connection rate: 841.8 conn/s (1.2 ms/conn, <=316 concurrent connections)
+Connection time [ms]: min 25.8 avg 151.9 max 2207.0 median 125.5 stddev 153.9
+Connection time [ms]: connect 75.7
+Connection length [replies/conn]: 1.000
+
+Request rate: 841.8 req/s (1.2 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 975.4 avg 975.4 max 975.4 stddev 0.0 (1 samples)
+Reply time [ms]: response 76.2 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=5000 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 3.59 system 2.33 (user 60.4% system 39.2% total 99.6%)
+Net I/O: 277.7 KB/s (2.3*10^6 bps)
+
+Errors: total 0 client-timo 0 socket-timo 0 connrefused 0 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 1100 req/s =====
+Fri Jan 30 07:17:33 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=1100 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 7
+
+Total: connections 5000 requests 3944 replies 3944 test-duration 7.654 s
+
+Connection rate: 653.3 conn/s (1.5 ms/conn, <=2672 concurrent connections)
+Connection time [ms]: min 69.8 avg 1494.6 max 6324.7 median 601.5 stddev 1454.5
+Connection time [ms]: connect 663.0
+Connection length [replies/conn]: 1.000
+
+Request rate: 515.3 req/s (1.9 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 518.2 avg 518.2 max 518.2 stddev 0.0 (1 samples)
+Reply time [ms]: response 1000.7 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=3944 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 5.24 system 2.39 (user 68.5% system 31.2% total 99.7%)
+Net I/O: 170.0 KB/s (1.4*10^6 bps)
+
+Errors: total 1056 client-timo 0 socket-timo 0 connrefused 1056 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+
+===== RATE: 1200 req/s =====
+Fri Jan 30 07:18:01 PM IST 2026
+httperf --client=0/1 --server=10.51.12.133 --port=80 --uri=/test.php --rate=1200 --send-buffer=4096 --recv-buffer=16384 --ssl-protocol=auto --num-conns=5000 --num-calls=1
+Maximum connect burst length: 1
+
+Total: connections 5000 requests 2767 replies 2767 test-duration 5.469 s
+
+Connection rate: 914.3 conn/s (1.1 ms/conn, <=2441 concurrent connections)
+Connection time [ms]: min 119.8 avg 1338.4 max 4294.0 median 1109.5 stddev 1021.2
+Connection time [ms]: connect 508.1
+Connection length [replies/conn]: 1.000
+
+Request rate: 506.0 req/s (2.0 ms/req)
+Request size [B]: 73.0
+
+Reply rate [replies/s]: min 545.6 avg 545.6 max 545.6 stddev 0.0 (1 samples)
+Reply time [ms]: response 943.1 transfer 0.0
+Reply size [B]: header 198.0 content 66.0 footer 0.0 (total 264.0)
+Reply status: 1xx=0 2xx=2767 3xx=0 4xx=0 5xx=0
+
+CPU time [s]: user 3.82 system 1.60 (user 69.8% system 29.2% total 99.0%)
+Net I/O: 166.9 KB/s (1.4*10^6 bps)
+
+Errors: total 2233 client-timo 0 socket-timo 0 connrefused 2233 connreset 0
+Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
+=====================================
+All experiments completed
