@@ -62,7 +62,10 @@ Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
 
 
 
-viren@UnknownDevice:/mnt/d/IITB/Courses/SEM 2/CS 681/Performance-Analysis-CS681$ httperf --server 10.51.5.140 --port 80 --uri /test.php --rate 50 --num-conns 500
+viren@UnknownDevice:/mnt/d/IITB/Courses/SEM 2/CS 681/Performance-Analysis-CS681$ 
+
+
+httperf --server 10.51.29.70 --port 80 --uri /test.php --rate 1000 --num-conns 5000
 httperf --client=0/1 --server=10.51.5.140 --port=80 --uri=/test.php --rate=50 --send-buffer=4096 --recv-buffer=16384 --num-conns=500 --num-calls=1
 httperf: warning: open file limit > FD_SETSIZE; limiting max. # of open files to FD_SETSIZE
 Maximum connect burst length: 1
