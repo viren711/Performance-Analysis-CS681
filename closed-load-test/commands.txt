@@ -1,0 +1,19 @@
+curl http://10.53.6.159/test.php
+
+
+netsh interface portproxy add v4tov4 `
+ listenaddress=0.0.0.0 listenport=8000 `
+ connectaddress=172.31.235.156 connectport=8000
+
+netsh interface portproxy show all
+
+
+/usr/lib/x86_64-linux-gnu/tsung/bin/tsung_stats.pl
+
+hostname -I
+
+/usr/lib/tsung/bin/tsung_stats.pl --stats result.log
+
+tsung -f closed.xml -l . -m result.log start
+
+/usr/lib/tsung/bin/tsung_stats.pl --stats result.log

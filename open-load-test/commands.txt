@@ -1,7 +1,3 @@
-sudo apt install automake libtool
-
-https://chatgpt.com/share/69693003-e464-800b-8521-6b90b1a230aa
-
 curl http://10.53.6.159/test.php
 
 
@@ -10,13 +6,6 @@ netsh interface portproxy add v4tov4 `
  connectaddress=172.31.235.156 connectport=8000
 
 netsh interface portproxy show all
-
-
-/usr/lib/x86_64-linux-gnu/tsung/bin/tsung_stats.pl
-
-
-
-/usr/lib/x86_64-linux-gnu/tsung/bin/tsung_stats.pl
 
 
 hostname -I
@@ -60,9 +49,6 @@ Errors: fd-unavail 0 addrunavail 0 ftab-full 0 other 0
 
 
 
-
-
-viren@UnknownDevice:/mnt/d/IITB/Courses/SEM 2/CS 681/Performance-Analysis-CS681$ 
 
 
 httperf --server 10.51.29.70 --port 80 --uri /test.php --rate 1000 --num-conns 5000

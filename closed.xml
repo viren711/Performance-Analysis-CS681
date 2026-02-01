@@ -3,32 +3,30 @@
 
 <tsung loglevel="notice" version="1.0">
 
-  <!-- Load generator location -->
+  <!-- Load generator -->
   <clients>
-    <client host="localhost" maxusers="200"/>
+    <client host="localhost" maxusers="2000"/>
   </clients>
 
-  <!-- Web server (Windows machine) -->
+  <!-- Web server under test -->
   <servers>
-    <server host="10.51.29.70" port="80" type="tcp"/>
+    <server host="10.51.12.133" port="80" type="tcp"/>
   </servers>
 
-  <!-- Long duration to guarantee steady state -->
-  <load duration="600" unit="second">
-    <arrivalphase phase="1" duration="600" unit="second">
-
-      <!-- Moderate population -->
-      <users maxnumber="30" arrivalrate="30" unit="second"/>
-
+  <!-- Closed system load -->
+  <load duration="1200" unit="second">
+    <arrivalphase phase="1" duration="1200" unit="second">
+      <!-- Ramp up users gradually -->
+      <users maxnumber="1000" arrivalrate="10" unit="second"/>
     </arrivalphase>
   </load>
 
-  <!-- Closed user behavior -->
+  <!-- Closed-loop user behavior -->
   <sessions>
     <session probability="100" name="closed_users" type="ts_http">
 
-      <!-- Infinite circulation -->
-      <for from="1" to="1000000000" var="i">
+      <!-- FINITE loop: users WILL finish -->
+      <for from="1" to="25" var="i">
 
         <transaction name="http_request">
           <request>
@@ -36,8 +34,8 @@
           </request>
         </transaction>
 
-        <!-- Non-zero think time -->
-        <thinktime value="8"/>
+        <!-- Think time -->
+        <thinktime value="6"/>
 
       </for>
 

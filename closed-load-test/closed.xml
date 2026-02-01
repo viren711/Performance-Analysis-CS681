@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/usr/share/tsung/tsung-1.0.dtd">
+
+<tsung loglevel="notice" version="1.0">
+
+  <!-- Load generator -->
+  <clients>
+    <client host="localhost" maxusers="2000"/>
+  </clients>
+
+  <!-- Web server under test -->
+  <servers>
+    <server host="10.51.12.133" port="80" type="tcp"/>
+  </servers>
+
+  <!-- Closed system load -->
+  <load duration="1200" unit="second">
+    <arrivalphase phase="1" duration="1200" unit="second">
+      <!-- Ramp up users gradually -->
+      <users maxnumber="1000" arrivalrate="10" unit="second"/>
+    </arrivalphase>
+  </load>
+
+  <!-- Closed-loop user behavior -->
+  <sessions>
+    <session probability="100" name="closed_users" type="ts_http">
+
+      <!-- FINITE loop: users WILL finish -->
+      <for from="1" to="25" var="i">
+
+        <transaction name="http_request">
+          <request>
+            <http url="/test.php" version="1.1"/>
+          </request>
+        </transaction>
+
+        <!-- Think time -->
+        <thinktime value="6"/>
+
+      </for>
+
+    </session>
+  </sessions>
+
+</tsung>
