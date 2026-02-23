@@ -1,3 +1,8 @@
+netstat -ano | findstr :80
+taskkill /PID 1234 /F
+
+Get-Counter '\Processor(_Total)\% Processor Time' -SampleInterval 1 -MaxSamples 1000 | Export-Counter cpu.blg
+
 curl http://10.53.6.159/test.php
 
 
@@ -12,7 +17,7 @@ hostname -I
 
 httperf --server 172.31.235.156  --uri /test.php --rate 50 --num-conns 500
 
-httperf --server 10.51.5.140 --port 80 --uri /test.php --rate 50 --num-conns 500
+httperf --server 10.51.8.247 --port 80 --uri /test.php --rate 50 --num-conns 500
 
 
 viren@UnknownDevice:/mnt/d/IITB/Courses/SEM 2/CS 681/Performance-Analysis-CS681$ httperf --server 172.31.235.156  --uri /test.php --rate 50 --num-conns 500

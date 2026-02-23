@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SERVER="10.51.12.133"
+SERVER="10.51.8.247"
 PORT=80
 URI="/test.php"
 CONNS=5000
