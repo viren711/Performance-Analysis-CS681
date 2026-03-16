@@ -4,3 +4,6 @@ v1.5.0.tar.gz
 results
 
 *.zip
+
+env/
+env
