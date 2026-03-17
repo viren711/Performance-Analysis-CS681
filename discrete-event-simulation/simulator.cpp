@@ -10,10 +10,23 @@ using namespace std;
 /* ================= CONFIG ================= */
 
 enum ServiceDist{
-    CONST_DIST,
     UNIFORM_DIST,
     EXP_DIST
 };
+
+enum SchedPolicy
+{
+    FIFO,
+    ROUND_ROBIN
+};
+
+enum EventType
+{
+    ARRIVAL,
+    DISPATCH,
+    TIMEOUT
+};
+
 
 class Config
 {
@@ -38,16 +51,11 @@ public:
     double warmup = 2000;
 
     ServiceDist service_dist = EXP_DIST;
+    SchedPolicy sched_policy = ROUND_ROBIN;
 };
 
 /* ================= EVENT ================= */
 
-enum EventType
-{
-    ARRIVAL,
-    DISPATCH,
-    TIMEOUT
-};
 
 class Event
 {
@@ -175,10 +183,6 @@ public:
 
     double serviceTime()
     {
-
-        if(cfg.service_dist == CONST_DIST)
-            return cfg.service_mean;
-
         if(cfg.service_dist == UNIFORM_DIST)
             return rng.uniform(cfg.service_mean*0.5,
                                cfg.service_mean*1.5);
@@ -251,30 +255,47 @@ public:
     /* ================= DISPATCH ================= */
 
     void scheduleDispatch()
+{
+
+    int core=freeCore();
+
+    if(core==-1) return;
+    if(threadQueue.empty()) return;
+
+    int req=threadQueue.front();
+    threadQueue.pop();
+
+    cores[core].busy=true;
+    cores[core].current_request=req;
+
+    double slice;
+
+    // FIFO → process full request at once
+    if(cfg.sched_policy == FIFO)
     {
-
-        int core=freeCore();
-
-        if(core==-1) return;
-        if(threadQueue.empty()) return;
-
-        int req=threadQueue.front();
-        threadQueue.pop();
-
-        cores[core].busy=true;
-        cores[core].current_request=req;
-
-        double slice=min(cfg.quantum,
-                         requests[req].remaining_service);
-
-        requests[req].remaining_service-=slice;
-
-        metrics.busy_time+=slice;
-
-        eventList.push(Event(sim_time+slice+
-                             cfg.context_switch,
-                             DISPATCH,core));
+        slice = requests[req].remaining_service;
+        requests[req].remaining_service = 0;
     }
+    else
+    {
+        // ROUND ROBIN
+        slice = min(cfg.quantum,
+                    requests[req].remaining_service);
+
+        requests[req].remaining_service -= slice;
+    }
+
+    metrics.busy_time += slice;
+
+    double load_factor = (double)threadQueue.size() / cfg.cores;
+
+    // prevent zero
+    if(load_factor < 1) load_factor = 1;
+
+    double effective_cs = cfg.context_switch * load_factor;
+
+    eventList.push(Event(sim_time + slice + effective_cs, DISPATCH, core));
+}
 
     /* ================= DISPATCH EVENT ================= */
 
@@ -311,7 +332,9 @@ public:
         }
         else
         {
-            threadQueue.push(req);
+            // Only requeue in Round Robin
+            if(cfg.sched_policy == ROUND_ROBIN)
+                threadQueue.push(req);
 
             cores[core].busy=false;
             cores[core].current_request=-1;
@@ -407,61 +430,6 @@ void runMultiple(Config cfg,int runs)
 
 /* ================= USERS EXPERIMENT ================= */
 
-// void usersExperiment()
-// {
-
-//     Config cfg;
-
-//     cout << "users,mean_response,ci_low,ci_high\n";
-
-//     for(int u = 5; u <= 100; u += 5)
-//     {
-
-//         cfg.users = u;
-
-//         vector<double> responses;
-
-//         // run simulator multiple times
-//         for(int r = 0; r < 20; r++)
-//         {
-//             Simulator sim(cfg,r+1);
-
-//             sim.initialize();
-//             sim.run();
-
-//             double response =
-//                 sim.metrics.response_sum /
-//                 max(1,sim.metrics.goodput);
-
-//             responses.push_back(response);
-//         }
-
-//         // compute mean
-//         double mean = 0;
-//         for(double x : responses)
-//             mean += x;
-
-//         mean /= responses.size();
-
-//         // compute variance
-//         double var = 0;
-//         for(double x : responses)
-//             var += (x - mean) * (x - mean);
-
-//         var /= (responses.size() - 1);
-
-//         double stddev = sqrt(var);
-
-//         // 95% confidence interval
-//         double CI = 1.96 * stddev / sqrt(responses.size());
-
-//         cout << u << ","
-//              << mean << ","
-//              << mean - CI << ","
-//              << mean + CI << "\n";
-//     }
-
-// }
 
 void usersExperiment()
 {
@@ -583,6 +551,66 @@ void contextSwitchExperiment()
     }
 }
 
+void threadPoolExperiment()
+{
+
+    Config cfg;
+
+    cfg.users = 40;
+    cfg.cores = 4;
+
+    cout<<"threads,response,throughput,utilization\n";
+
+    for(int t = 1; t <= 200; t += 10)
+    {
+
+        cfg.threads = t;
+
+        vector<double> responses;
+        Metrics avg;
+
+        int runs = 20;
+
+        for(int r=0;r<runs;r++)
+        {
+            Simulator sim(cfg,r+1);
+
+            sim.initialize();
+            sim.run();
+
+            double resp = sim.metrics.response_sum /
+                          max(1,sim.metrics.goodput);
+
+            responses.push_back(resp);
+
+            avg.goodput += sim.metrics.goodput;
+            avg.badput  += sim.metrics.badput;
+            avg.busy_time += sim.metrics.busy_time;
+        }
+
+        avg.goodput/=runs;
+        avg.badput/=runs;
+        avg.busy_time/=runs;
+
+        // mean response
+        double mean=0;
+        for(double x:responses) mean+=x;
+        mean/=responses.size();
+
+        double throughput = (avg.goodput + avg.badput)
+                            / cfg.sim_time;
+
+        double util = avg.busy_time /
+                      (cfg.sim_time * cfg.cores);
+
+        cout<<t<<","
+            <<mean<<","
+            <<throughput<<","
+            <<util<<"\n";
+    }
+
+}
+
 /* ================= MAIN ================= */
 
 int main()
@@ -590,9 +618,10 @@ int main()
 
     Config cfg;
 
-    cfg.service_dist = EXP_DIST;
+    cfg.service_dist = UNIFORM_DIST;
+    cfg.sched_policy = ROUND_ROBIN;
 
-    //usersExperiment();        // Response Time vs Users + CI
-
-    contextSwitchExperiment(); // Context switch experiment
+    usersExperiment();        // Response Time vs Users + CI
+    //contextSwitchExperiment(); // Context switch experiment
+    //threadPoolExperiment();
 }
