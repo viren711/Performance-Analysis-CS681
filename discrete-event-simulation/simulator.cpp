@@ -356,7 +356,6 @@ public:
 
     void run()
     {
-
         while(!eventList.empty())
         {
 
@@ -431,10 +430,10 @@ void runMultiple(Config cfg,int runs)
 /* ================= USERS EXPERIMENT ================= */
 
 
-void usersExperiment()
+void usersExperiment(Config cfg)
 {
 
-    Config cfg;
+    //Config cfg;
 
     cout<<"users,mean_response,ci_low,ci_high,throughput,goodput,badput,drop,utilization\n";
 
@@ -518,10 +517,10 @@ void usersExperiment()
 
 }
 
-void contextSwitchExperiment()
+void contextSwitchExperiment(Config cfg)
 {
 
-    Config cfg;
+    //Config cfg;
 
     cfg.users=40;
     cfg.threads=100;
@@ -551,10 +550,10 @@ void contextSwitchExperiment()
     }
 }
 
-void threadPoolExperiment()
+void threadPoolExperiment(Config cfg)
 {
 
-    Config cfg;
+    //Config cfg;
 
     cfg.users = 40;
     cfg.cores = 4;
@@ -619,9 +618,9 @@ int main()
     Config cfg;
 
     cfg.service_dist = UNIFORM_DIST;
-    cfg.sched_policy = ROUND_ROBIN;
+    cfg.sched_policy = FIFO;
 
-    usersExperiment();        // Response Time vs Users + CI
-    //contextSwitchExperiment(); // Context switch experiment
-    //threadPoolExperiment();
+    //usersExperiment(cfg);        // Response Time vs Users + CI
+    contextSwitchExperiment(cfg); // Context switch experiment
+    //threadPoolExperiment(cfg);
 }
