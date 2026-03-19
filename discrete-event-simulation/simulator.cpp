@@ -78,7 +78,7 @@ public:
     }
 };
 
-// Priority queue comparator (earliest event first)
+// Priority queue comparator
 class EventCompare
 {
 public:
@@ -436,6 +436,97 @@ void usersExperiment(Config cfg)
     }
 }
 
+
+
+/* ============================================================
+                CONTEXT SWITCH EXPERIMENT
+   ============================================================ */
+
+void contextSwitchExperiment(Config cfg)
+{
+    cout<<"ctx_switch,response,throughput\n";
+
+    cfg.users = 40;  // fixed load
+
+    for(double cs=0.001; cs<=0.1; cs+=0.01)
+    {
+        cfg.context_switch = cs;
+
+        Metrics avg;
+        int runs = 20;
+
+        for(int r=0; r<runs; r++)
+        {
+            Simulator sim(cfg, r+1);
+
+            sim.initialize();
+            sim.run();
+
+            avg.goodput += sim.metrics.goodput;
+            avg.badput  += sim.metrics.badput;
+            avg.response_sum += sim.metrics.response_sum;
+        }
+
+        avg.goodput /= runs;
+        avg.badput  /= runs;
+        avg.response_sum /= runs;
+
+        double response = avg.response_sum / max(1, avg.goodput);
+        double throughput = (avg.goodput + avg.badput) / cfg.sim_time;
+
+        cout<<cs<<","
+            <<response<<","
+            <<throughput<<"\n";
+    }
+}
+
+/* ============================================================
+                THREAD POOL EXPERIMENT
+   ============================================================ */
+
+void threadPoolExperiment(Config cfg)
+{
+    cout<<"threads,response,throughput,utilization\n";
+
+    cfg.users = 40;
+    cfg.cores = 4;
+
+    for(int t=1; t<=200; t+=10)
+    {
+        cfg.threads = t;
+
+        Metrics avg;
+        int runs = 20;
+
+        for(int r=0; r<runs; r++)
+        {
+            Simulator sim(cfg, r+1);
+
+            sim.initialize();
+            sim.run();
+
+            avg.goodput += sim.metrics.goodput;
+            avg.badput  += sim.metrics.badput;
+            avg.response_sum += sim.metrics.response_sum;
+            avg.busy_time += sim.metrics.busy_time;
+        }
+
+        avg.goodput /= runs;
+        avg.badput  /= runs;
+        avg.response_sum /= runs;
+        avg.busy_time /= runs;
+
+        double response = avg.response_sum / max(1, avg.goodput);
+        double throughput = (avg.goodput + avg.badput) / cfg.sim_time;
+        double util = avg.busy_time / (cfg.sim_time * cfg.cores);
+
+        cout<<t<<","
+            <<response<<","
+            <<throughput<<","
+            <<util<<"\n";
+    }
+}
+
 /* ============================================================
                         MAIN
    ============================================================ */
@@ -454,8 +545,8 @@ int main()
 // {
 //     int max_users = 100;
 
-//     double S = 0.2;   // adjusted service time (EXP + RR + 4 cores)
-//     double Z = 3.5;    // think time
+//     double S = 0.2;   
+//     double Z = 3.5;   
 
 //     vector<double> R(max_users + 1);
 //     vector<double> X(max_users + 1);
