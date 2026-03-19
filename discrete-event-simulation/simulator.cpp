@@ -7,9 +7,9 @@
 
 using namespace std;
 
-/* ============================================================
-                        CONFIGURATION
-   ============================================================ */
+/* 
+    CONFIGURATION
+    */
 
 // Service time distributions supported
 enum ServiceDist{
@@ -58,9 +58,9 @@ public:
     SchedPolicy sched_policy = ROUND_ROBIN;
 };
 
-/* ============================================================
+/* 
                         EVENT SYSTEM
-   ============================================================ */
+    */
 
 // Event object for DES
 class Event
@@ -88,9 +88,9 @@ public:
     }
 };
 
-/* ============================================================
+/* 
                         REQUEST MODEL
-   ============================================================ */
+    */
 
 class Request
 {
@@ -109,9 +109,9 @@ public:
     }
 };
 
-/* ============================================================
+/* 
                         METRICS
-   ============================================================ */
+    */
 
 class Metrics
 {
@@ -124,9 +124,9 @@ public:
     double busy_time=0;    // CPU utilization metric
 };
 
-/* ============================================================
+/* 
                         RANDOM GENERATOR
-   ============================================================ */
+    */
 
 class RNG
 {
@@ -151,9 +151,9 @@ public:
     }
 };
 
-/* ============================================================
+/* 
                         CORE MODEL
-   ============================================================ */
+    */
 
 class Core
 {
@@ -162,9 +162,9 @@ public:
     int current_request=-1;
 };
 
-/* ============================================================
+/* 
                         SIMULATOR
-   ============================================================ */
+    */
 
 class Simulator
 {
@@ -189,7 +189,7 @@ public:
         cores.resize(cfg.cores);
     }
 
-    /* ---------------- SERVICE TIME ---------------- */
+    /*  SERVICE TIME  */
 
     double serviceTime()
     {
@@ -200,14 +200,14 @@ public:
         return rng.exponential(cfg.service_mean);
     }
 
-    /* ---------------- THINK TIME ---------------- */
+    /*  THINK TIME  */
 
     double thinkTime()
     {
         return rng.uniform(cfg.think_min,cfg.think_max);
     }
 
-    /* ---------------- INITIALIZATION ---------------- */
+    /*  INITIALIZATION  */
 
     void initialize()
     {
@@ -222,7 +222,7 @@ public:
         }
     }
 
-    /* ---------------- CORE ALLOCATION ---------------- */
+    /*  CORE ALLOCATION  */
 
     int freeCore()
     {
@@ -233,7 +233,7 @@ public:
         return -1;
     }
 
-    /* ---------------- ARRIVAL EVENT ---------------- */
+    /*  ARRIVAL EVENT  */
 
     void handleArrival(Event e)
     {
@@ -258,7 +258,7 @@ public:
         }
     }
 
-    /* ---------------- SCHEDULER ---------------- */
+    /*  SCHEDULER  */
 
     void scheduleDispatch()
     {
@@ -304,7 +304,7 @@ public:
                              DISPATCH, core));
     }
 
-    /* ---------------- DISPATCH EVENT ---------------- */
+    /*  DISPATCH EVENT  */
 
     void handleDispatch(Event e)
     {
@@ -347,14 +347,14 @@ public:
         scheduleDispatch();
     }
 
-    /* ---------------- TIMEOUT ---------------- */
+    /*  TIMEOUT  */
 
     void handleTimeout(Event e)
     {
         requests[e.request].timed_out=true;
     }
 
-    /* ---------------- MAIN LOOP ---------------- */
+    /*  MAIN LOOP  */
 
     void run()
     {
@@ -374,9 +374,9 @@ public:
     }
 };
 
-/* ============================================================
+/* 
                         EXPERIMENTS
-   ============================================================ */
+    */
 
 // Users vs performance (with CI)
 void usersExperiment(Config cfg)
@@ -438,9 +438,9 @@ void usersExperiment(Config cfg)
 
 
 
-/* ============================================================
+/* 
                 CONTEXT SWITCH EXPERIMENT
-   ============================================================ */
+    */
 
 void contextSwitchExperiment(Config cfg)
 {
@@ -480,9 +480,9 @@ void contextSwitchExperiment(Config cfg)
     }
 }
 
-/* ============================================================
+/* 
                 THREAD POOL EXPERIMENT
-   ============================================================ */
+    */
 
 void threadPoolExperiment(Config cfg)
 {
@@ -527,9 +527,9 @@ void threadPoolExperiment(Config cfg)
     }
 }
 
-/* ============================================================
+/* 
                         MAIN
-   ============================================================ */
+    */
 
 int main()
 {
