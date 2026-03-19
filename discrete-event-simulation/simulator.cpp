@@ -7,19 +7,24 @@
 
 using namespace std;
 
-/* ================= CONFIG ================= */
+/* ============================================================
+                        CONFIGURATION
+   ============================================================ */
 
+// Service time distributions supported
 enum ServiceDist{
     UNIFORM_DIST,
     EXP_DIST
 };
 
+// Scheduling policies
 enum SchedPolicy
 {
     FIFO,
     ROUND_ROBIN
 };
 
+// Event types in simulation
 enum EventType
 {
     ARRIVAL,
@@ -27,43 +32,43 @@ enum EventType
     TIMEOUT
 };
 
-
+// Global configuration of system
 class Config
 {
 public:
+    int users = 50;        // number of users (closed system)
+    int cores = 4;         // number of CPU cores
+    int threads = 100;     // max concurrent threads
+    int buffer = 500;      // queue capacity
 
-    int users = 50;
-    int cores = 4;
-    int threads = 100;
-    int buffer = 500;
+    double service_mean = 0.8;  // avg service time
 
-    double service_mean = 0.8;
-
-    double think_min = 2;
+    double think_min = 2;       // think time range
     double think_max = 5;
 
-    double timeout = 5;
+    double timeout = 5;         // request timeout
 
-    double quantum = 0.2;
+    double quantum = 0.2;       // RR time slice
     double context_switch = 0.01;
 
-    double sim_time = 10000;
-    double warmup = 2000;
+    double sim_time = 10000;    // total simulation time
+    double warmup = 2000;       // ignore transient phase
 
     ServiceDist service_dist = EXP_DIST;
     SchedPolicy sched_policy = ROUND_ROBIN;
 };
 
-/* ================= EVENT ================= */
+/* ============================================================
+                        EVENT SYSTEM
+   ============================================================ */
 
-
+// Event object for DES
 class Event
 {
 public:
-
-    double time;
-    EventType type;
-    int request;
+    double time;     // event time
+    EventType type;  // event type
+    int request;     // associated request
 
     Event(double t, EventType ty, int r)
     {
@@ -73,27 +78,28 @@ public:
     }
 };
 
+// Priority queue comparator (earliest event first)
 class EventCompare
 {
 public:
-
     bool operator()(Event a, Event b)
     {
         return a.time > b.time;
     }
 };
 
-/* ================= REQUEST ================= */
+/* ============================================================
+                        REQUEST MODEL
+   ============================================================ */
 
 class Request
 {
 public:
-
     int id;
     double arrival;
     double remaining_service;
 
-    bool timed_out=false;
+    bool timed_out = false;
 
     Request(int i,double t,double s)
     {
@@ -103,26 +109,28 @@ public:
     }
 };
 
-/* ================= METRICS ================= */
+/* ============================================================
+                        METRICS
+   ============================================================ */
 
 class Metrics
 {
 public:
+    int goodput=0;   // completed within timeout
+    int badput=0;    // completed after timeout
+    int dropped=0;   // dropped due to full queue
 
-    int goodput=0;
-    int badput=0;
-    int dropped=0;
-
-    double response_sum=0;
-    double busy_time=0;
+    double response_sum=0; // sum of response times
+    double busy_time=0;    // CPU utilization metric
 };
 
-/* ================= RANDOM ================= */
+/* ============================================================
+                        RANDOM GENERATOR
+   ============================================================ */
 
 class RNG
 {
 public:
-
     default_random_engine gen;
 
     RNG(int seed)
@@ -143,28 +151,30 @@ public:
     }
 };
 
-/* ================= CORE ================= */
+/* ============================================================
+                        CORE MODEL
+   ============================================================ */
 
 class Core
 {
 public:
-
     bool busy=false;
     int current_request=-1;
 };
 
-/* ================= SIMULATOR ================= */
+/* ============================================================
+                        SIMULATOR
+   ============================================================ */
 
 class Simulator
 {
-
 public:
-
     Config cfg;
     RNG rng;
 
     double sim_time=0;
 
+    // Event list (priority queue)
     priority_queue<Event,vector<Event>,EventCompare> eventList;
 
     vector<Request> requests;
@@ -179,7 +189,7 @@ public:
         cores.resize(cfg.cores);
     }
 
-    /* ================= SERVICE DISTRIBUTION ================= */
+    /* ---------------- SERVICE TIME ---------------- */
 
     double serviceTime()
     {
@@ -190,32 +200,29 @@ public:
         return rng.exponential(cfg.service_mean);
     }
 
-    /* ================= THINK TIME ================= */
+    /* ---------------- THINK TIME ---------------- */
 
     double thinkTime()
     {
         return rng.uniform(cfg.think_min,cfg.think_max);
     }
 
-    /* ================= INITIALIZE ================= */
+    /* ---------------- INITIALIZATION ---------------- */
 
     void initialize()
     {
-
+        // Create one request per user
         for(int i=0;i<cfg.users;i++)
         {
             double t=thinkTime();
-
             double s=serviceTime();
 
             requests.push_back(Request(i,t,s));
-
             eventList.push(Event(t,ARRIVAL,i));
         }
-
     }
 
-    /* ================= FIND FREE CORE ================= */
+    /* ---------------- CORE ALLOCATION ---------------- */
 
     int freeCore()
     {
@@ -226,11 +233,10 @@ public:
         return -1;
     }
 
-    /* ================= ARRIVAL ================= */
+    /* ---------------- ARRIVAL EVENT ---------------- */
 
     void handleArrival(Event e)
     {
-
         int id=e.request;
 
         requests[id].arrival=sim_time;
@@ -241,6 +247,7 @@ public:
         {
             threadQueue.push(id);
 
+            // schedule timeout
             eventList.push(Event(sim_time+cfg.timeout,TIMEOUT,id));
 
             scheduleDispatch();
@@ -249,90 +256,87 @@ public:
         {
             metrics.dropped++;
         }
-
     }
 
-    /* ================= DISPATCH ================= */
+    /* ---------------- SCHEDULER ---------------- */
 
     void scheduleDispatch()
-{
-
-    int core=freeCore();
-
-    if(core==-1) return;
-    if(threadQueue.empty()) return;
-
-    int req=threadQueue.front();
-    threadQueue.pop();
-
-    cores[core].busy=true;
-    cores[core].current_request=req;
-
-    double slice;
-
-    // FIFO → process full request at once
-    if(cfg.sched_policy == FIFO)
     {
-        slice = requests[req].remaining_service;
-        requests[req].remaining_service = 0;
+        int core = freeCore();
+        if(core == -1 || threadQueue.empty()) return;
+
+        // Load-dependent overhead
+        double load_factor = (double)threadQueue.size() / cfg.cores;
+        if(load_factor < 1) load_factor = 1;
+
+        int req = threadQueue.front();
+        threadQueue.pop();
+
+        cores[core].busy = true;
+        cores[core].current_request = req;
+
+        double slice;
+
+        // FIFO vs Round Robin execution
+        if(cfg.sched_policy == FIFO)
+        {
+            slice = requests[req].remaining_service;
+            requests[req].remaining_service = 0;
+        }
+        else
+        {
+            slice = min(cfg.quantum,
+                        requests[req].remaining_service);
+
+            requests[req].remaining_service -= slice;
+        }
+
+        metrics.busy_time += slice;
+
+        double effective_cs;
+
+        if(cfg.sched_policy == ROUND_ROBIN)
+            effective_cs = cfg.context_switch * (1 + load_factor);
+        else
+            effective_cs = cfg.context_switch;
+
+        eventList.push(Event(sim_time + slice + effective_cs,
+                             DISPATCH, core));
     }
-    else
-    {
-        // ROUND ROBIN
-        slice = min(cfg.quantum,
-                    requests[req].remaining_service);
 
-        requests[req].remaining_service -= slice;
-    }
-
-    metrics.busy_time += slice;
-
-    double load_factor = (double)threadQueue.size() / cfg.cores;
-
-    // prevent zero
-    if(load_factor < 1) load_factor = 1;
-
-    double effective_cs = cfg.context_switch * load_factor;
-
-    eventList.push(Event(sim_time + slice + effective_cs, DISPATCH, core));
-}
-
-    /* ================= DISPATCH EVENT ================= */
+    /* ---------------- DISPATCH EVENT ---------------- */
 
     void handleDispatch(Event e)
     {
-
         int core=e.request;
         int req=cores[core].current_request;
 
-        if(requests[req].remaining_service<=0)
+        if(requests[req].remaining_service <= 0)
         {
-
+            // Completed request
             if(!requests[req].timed_out)
             {
-                metrics.goodput++;
-
-                if(sim_time>cfg.warmup)
-                    metrics.response_sum+=sim_time-
-                                           requests[req].arrival;
+                if(sim_time > cfg.warmup)
+                {
+                    metrics.goodput++;
+                    metrics.response_sum += sim_time - requests[req].arrival;
+                }
             }
             else
             {
                 metrics.badput++;
             }
 
-            double think=thinkTime();
+            // Next request after think time
+            double think = thinkTime();
+            eventList.push(Event(sim_time + think, ARRIVAL, req));
 
-            eventList.push(Event(sim_time+think,
-                                 ARRIVAL,req));
-
-            cores[core].busy=false;
-            cores[core].current_request=-1;
-
+            cores[core].busy = false;
+            cores[core].current_request = -1;
         }
         else
         {
-            // Only requeue in Round Robin
+            // RR: requeue incomplete request
             if(cfg.sched_policy == ROUND_ROBIN)
                 threadQueue.push(req);
 
@@ -343,121 +347,59 @@ public:
         scheduleDispatch();
     }
 
-    /* ================= TIMEOUT ================= */
+    /* ---------------- TIMEOUT ---------------- */
 
     void handleTimeout(Event e)
     {
-        int id=e.request;
-
-        requests[id].timed_out=true;
+        requests[e.request].timed_out=true;
     }
 
-    /* ================= RUN ================= */
+    /* ---------------- MAIN LOOP ---------------- */
 
     void run()
     {
         while(!eventList.empty())
         {
-
             Event e=eventList.top();
             eventList.pop();
 
-            if(e.time>cfg.sim_time)
-                break;
+            if(e.time>cfg.sim_time) break;
 
             sim_time=e.time;
 
-            if(e.type==ARRIVAL)
-                handleArrival(e);
-
-            else if(e.type==DISPATCH)
-                handleDispatch(e);
-
-            else if(e.type==TIMEOUT)
-                handleTimeout(e);
-
+            if(e.type==ARRIVAL) handleArrival(e);
+            else if(e.type==DISPATCH) handleDispatch(e);
+            else if(e.type==TIMEOUT) handleTimeout(e);
         }
-
     }
-
 };
 
-/* ================= MULTIPLE RUNS + CI ================= */
+/* ============================================================
+                        EXPERIMENTS
+   ============================================================ */
 
-void runMultiple(Config cfg,int runs)
-{
-
-    vector<double> responses;
-
-    for(int i=0;i<runs;i++)
-    {
-
-        Simulator sim(cfg,i+1);
-
-        sim.initialize();
-        sim.run();
-
-        double r = sim.metrics.response_sum /
-                   max(1,sim.metrics.goodput);
-
-        responses.push_back(r);
-    }
-
-    double mean=0;
-
-    for(double x:responses)
-        mean+=x;
-
-    mean/=responses.size();
-
-    double var=0;
-
-    for(double x:responses)
-        var+=(x-mean)*(x-mean);
-
-    var/=(responses.size()-1);
-
-    double stddev=sqrt(var);
-
-    double CI=1.96*stddev/sqrt(responses.size());
-
-    cout<<"Mean Response = "<<mean<<endl;
-    cout<<"95% CI = ["<<mean-CI<<","<<mean+CI<<"]"<<endl;
-}
-
-/* ================= EXPERIMENT ================= */
-
-/* ================= USERS EXPERIMENT ================= */
-
-
+// Users vs performance (with CI)
 void usersExperiment(Config cfg)
 {
-
-    //Config cfg;
-
     cout<<"users,mean_response,ci_low,ci_high,throughput,goodput,badput,drop,utilization\n";
 
     for(int u=5;u<=100;u+=5)
     {
-
         cfg.users = u;
 
         vector<double> responses;
-
         Metrics avg;
 
         int runs = 20;
 
         for(int r=0;r<runs;r++)
         {
-
             Simulator sim(cfg,r+1);
-
             sim.initialize();
             sim.run();
 
-            double resp = sim.metrics.response_sum /
-                          max(1,sim.metrics.goodput);
+            double resp = (sim.metrics.goodput > 0) ?
+                          sim.metrics.response_sum / sim.metrics.goodput : 0;
 
             responses.push_back(resp);
 
@@ -474,153 +416,68 @@ void usersExperiment(Config cfg)
         avg.response_sum/=runs;
         avg.busy_time/=runs;
 
-        /* ===== CI CALCULATION ===== */
-
-        double mean=0;
-
-        for(double x:responses)
-            mean+=x;
-
-        mean/=responses.size();
-
-        double var=0;
-
-        for(double x:responses)
-            var+=(x-mean)*(x-mean);
-
-        var/=(responses.size()-1);
-
-        double stddev=sqrt(var);
-
-        double CI=1.96*stddev/sqrt(responses.size());
-
-        /* ===== METRICS ===== */
-
-        double goodput = avg.goodput / cfg.sim_time;
-        double badput  = avg.badput  / cfg.sim_time;
-
-        double throughput = goodput + badput;
-
-        double util = avg.busy_time /
-                      (cfg.sim_time * cfg.cores);
-
-        cout<<u<<","
-            <<mean<<","
-            <<mean-CI<<","
-            <<mean+CI<<","
-            <<throughput<<","
-            <<goodput<<","
-            <<badput<<","
-            <<avg.dropped<<","
-            <<util<<"\n";
-    }
-
-}
-
-void contextSwitchExperiment(Config cfg)
-{
-
-    //Config cfg;
-
-    cfg.users=40;
-    cfg.threads=100;
-
-    cout<<"ctxswitch,response,throughput\n";
-
-    for(double cs=0.001; cs<=0.1; cs+=0.01)
-    {
-
-        cfg.context_switch=cs;
-
-        Simulator sim(cfg,1);
-
-        sim.initialize();
-        sim.run();
-
-        double response=sim.metrics.response_sum/
-                        max(1,sim.metrics.goodput);
-
-        double throughput=(sim.metrics.goodput+
-                           sim.metrics.badput)
-                           /cfg.sim_time;
-
-        cout<<cs<<","
-            <<response<<","
-            <<throughput<<"\n";
-    }
-}
-
-void threadPoolExperiment(Config cfg)
-{
-
-    //Config cfg;
-
-    cfg.users = 40;
-    cfg.cores = 4;
-
-    cout<<"threads,response,throughput,utilization\n";
-
-    for(int t = 1; t <= 200; t += 10)
-    {
-
-        cfg.threads = t;
-
-        vector<double> responses;
-        Metrics avg;
-
-        int runs = 20;
-
-        for(int r=0;r<runs;r++)
-        {
-            Simulator sim(cfg,r+1);
-
-            sim.initialize();
-            sim.run();
-
-            double resp = sim.metrics.response_sum /
-                          max(1,sim.metrics.goodput);
-
-            responses.push_back(resp);
-
-            avg.goodput += sim.metrics.goodput;
-            avg.badput  += sim.metrics.badput;
-            avg.busy_time += sim.metrics.busy_time;
-        }
-
-        avg.goodput/=runs;
-        avg.badput/=runs;
-        avg.busy_time/=runs;
-
-        // mean response
+        // CI calculation
         double mean=0;
         for(double x:responses) mean+=x;
         mean/=responses.size();
 
-        double throughput = (avg.goodput + avg.badput)
-                            / cfg.sim_time;
+        double var=0;
+        for(double x:responses) var+=(x-mean)*(x-mean);
+        var/=(responses.size()-1);
 
-        double util = avg.busy_time /
-                      (cfg.sim_time * cfg.cores);
+        double CI=1.96*sqrt(var/responses.size());
 
-        cout<<t<<","
-            <<mean<<","
-            <<throughput<<","
-            <<util<<"\n";
+        double throughput = (avg.goodput + avg.badput) / cfg.sim_time;
+        double util = avg.busy_time / (cfg.sim_time * cfg.cores);
+
+        cout<<u<<","<<mean<<","<<mean-CI<<","<<mean+CI<<","
+            <<throughput<<","<<avg.goodput/cfg.sim_time<<","
+            <<avg.badput/cfg.sim_time<<","<<avg.dropped<<","<<util<<"\n";
     }
-
 }
 
-/* ================= MAIN ================= */
+/* ============================================================
+                        MAIN
+   ============================================================ */
 
 int main()
 {
-
     Config cfg;
 
-    cfg.service_dist = UNIFORM_DIST;
+    cfg.service_dist = EXP_DIST;
     cfg.sched_policy = FIFO;
 
-    //usersExperiment(cfg);        // Response Time vs Users + CI
-    contextSwitchExperiment(cfg); // Context switch experiment
-    //threadPoolExperiment(cfg);
+    usersExperiment(cfg);
 }
+
+// int main()
+// {
+//     int max_users = 100;
+
+//     double S = 0.2;   // adjusted service time (EXP + RR + 4 cores)
+//     double Z = 3.5;    // think time
+
+//     vector<double> R(max_users + 1);
+//     vector<double> X(max_users + 1);
+//     vector<double> Q(max_users + 1);
+
+//     Q[0] = 0;
+
+//     cout << "Users,R_mva,X_mva\n";
+
+//     for(int N = 1; N <= max_users; N++)
+//     {
+//         R[N] = S * (1 + Q[N-1]);
+
+//         X[N] = N / (R[N] + Z);
+
+//         Q[N] = X[N] * R[N];
+
+//         cout << N << ","
+//              << fixed << setprecision(4)
+//              << R[N] << ","
+//              << X[N] << "\n";
+//     }
+
+//     return 0;
+// }
