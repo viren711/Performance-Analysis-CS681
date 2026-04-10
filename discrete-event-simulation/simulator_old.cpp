@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include <queue>
 #include <vector>
 #include <cmath>
@@ -39,7 +38,7 @@ class Config
 public:
     int users = 50;        // number of users (closed system)
     int cores = 4;         // number of CPU cores
-    int threads = 30;      // max concurrent threads (admitted tasks = queued + running)
+    int threads = 100;     // max concurrent threads
     int buffer = 500;      // queue capacity
 
     double service_mean = 0.8;  // avg service time
@@ -47,6 +46,7 @@ public:
     double think_min = 2;       // think time range
     double think_max = 5;
 
+    double timeout = 5;     // request timeout
     // Request timeout distribution: timeout = timeout_min + U(0, timeout_var)
     double timeout_min = 3;     // minimum timeout (guaranteed wait)
     double timeout_var = 4;     // variable component (uniform 0..timeout_var)
@@ -184,7 +184,6 @@ public:
     vector<Core> cores;
 
     queue<int> threadQueue;
-    int active_threads = 0;   // total admitted tasks (queued + on-core)
 
     Metrics metrics;
 
@@ -209,13 +208,6 @@ public:
     double thinkTime()
     {
         return rng.uniform(cfg.think_min,cfg.think_max);
-    }
-
-    /*  TIMEOUT VALUE (min + variable component)  */
-
-    double timeoutValue()
-    {
-        return cfg.timeout_min + rng.uniform(0, cfg.timeout_var);
     }
 
     /*  INITIALIZATION  */
@@ -254,26 +246,18 @@ public:
         requests[id].remaining_service=serviceTime();
         requests[id].timed_out=false;
 
-        // Thread pool cap = queued + currently running
-        if(active_threads < cfg.threads)
+        if(threadQueue.size()<cfg.threads)
         {
             threadQueue.push(id);
-            active_threads++;
 
-            // schedule timeout (min + variable component)
-            eventList.push(Event(sim_time+timeoutValue(),TIMEOUT,id));
+            // schedule timeout
+            eventList.push(Event(sim_time+cfg.timeout,TIMEOUT,id));
 
             scheduleDispatch();
         }
         else
         {
-            // Count drop only after warmup
-            if(sim_time > cfg.warmup)
-                metrics.dropped++;
-
-            // Dropped user goes back to think loop and retries
-            double think = thinkTime();
-            eventList.push(Event(sim_time + think, ARRIVAL, id));
+            metrics.dropped++;
         }
     }
 
@@ -310,14 +294,7 @@ public:
             requests[req].remaining_service -= slice;
         }
 
-        // Only count busy time for the post-warmup portion of the slice
-        double slice_start = sim_time;
-        double slice_end   = sim_time + slice;
-        if(slice_end > cfg.warmup)
-        {
-            double count_from = max(slice_start, cfg.warmup);
-            metrics.busy_time += slice_end - count_from;
-        }
+        metrics.busy_time += slice;
 
         double effective_cs;
 
@@ -339,9 +316,7 @@ public:
 
         if(requests[req].remaining_service <= 0)
         {
-            // Completed request - release thread
-            active_threads--;
-
+            // Completed request
             if(!requests[req].timed_out)
             {
                 if(sim_time > cfg.warmup)
@@ -352,8 +327,7 @@ public:
             }
             else
             {
-                if(sim_time > cfg.warmup)
-                    metrics.badput++;
+                metrics.badput++;
             }
 
             // Next request after think time
@@ -456,13 +430,12 @@ void usersExperiment(Config cfg)
 
         double CI=1.96*sqrt(var/responses.size());
 
-        double eff_time = cfg.sim_time - cfg.warmup;
-        double throughput = (avg.goodput + avg.badput) / eff_time;
-        double util = avg.busy_time / (eff_time * cfg.cores);
+        double throughput = (avg.goodput + avg.badput) / cfg.sim_time;
+        double util = avg.busy_time / (cfg.sim_time * cfg.cores);
 
         cout<<u<<","<<mean<<","<<mean-CI<<","<<mean+CI<<","
-            <<throughput<<","<<avg.goodput/eff_time<<","
-            <<avg.badput/eff_time<<","<<avg.dropped/eff_time<<","<<util<<"\n";
+            <<throughput<<","<<avg.goodput/cfg.sim_time<<","
+            <<avg.badput/cfg.sim_time<<","<<avg.dropped<<","<<util<<"\n";
     }
 }
 
@@ -501,9 +474,8 @@ void contextSwitchExperiment(Config cfg)
         avg.badput  /= runs;
         avg.response_sum /= runs;
 
-        double eff_time = cfg.sim_time - cfg.warmup;
         double response = avg.response_sum / max(1, avg.goodput);
-        double throughput = (avg.goodput + avg.badput) / eff_time;
+        double throughput = (avg.goodput + avg.badput) / cfg.sim_time;
 
         cout<<cs<<","
             <<response<<","
@@ -547,10 +519,9 @@ void threadPoolExperiment(Config cfg)
         avg.response_sum /= runs;
         avg.busy_time /= runs;
 
-        double eff_time = cfg.sim_time - cfg.warmup;
         double response = avg.response_sum / max(1, avg.goodput);
-        double throughput = (avg.goodput + avg.badput) / eff_time;
-        double util = avg.busy_time / (eff_time * cfg.cores);
+        double throughput = (avg.goodput + avg.badput) / cfg.sim_time;
+        double util = avg.busy_time / (cfg.sim_time * cfg.cores);
 
         cout<<t<<","
             <<response<<","
@@ -563,95 +534,44 @@ void threadPoolExperiment(Config cfg)
                         MAIN
     */
 
-void runMVA(const string& filename, double S, double Z, double cs_overhead)
-{
-    ofstream out(filename);
-    int max_users = 100;
-
-    vector<double> R(max_users + 1);
-    vector<double> X(max_users + 1);
-    vector<double> Q(max_users + 1);
-
-    Q[0] = 0;
-
-    out << "users,R_mva,X_mva\n";
-
-    for(int N = 1; N <= max_users; N++)
-    {
-        R[N] = S * (1 + Q[N-1]) + cs_overhead;
-        X[N] = N / (R[N] + Z);
-        Q[N] = X[N] * R[N];
-
-        out << N << ","
-            << fixed << setprecision(4)
-            << R[N] << ","
-            << X[N] << "\n";
-    }
-
-    out.close();
-}
-
 int main()
 {
-    string dir = "results/";
+    Config cfg;
 
-    string dist_names[] = {"EXP", "UNI"};
-    ServiceDist dists[] = {EXP_DIST, UNIFORM_DIST};
+    cfg.service_dist = EXP_DIST;
+    cfg.sched_policy = FIFO;
 
-    string sched_names[] = {"FIFO", "RR"};
-    SchedPolicy scheds[] = {FIFO, ROUND_ROBIN};
-
-    for(int d = 0; d < 2; d++)
-    {
-        for(int s = 0; s < 2; s++)
-        {
-            Config cfg;
-            cfg.service_dist = dists[d];
-            cfg.sched_policy = scheds[s];
-
-            string tag = dist_names[d] + "_" + sched_names[s];
-
-            // Redirect cout to file for each experiment
-            string fname;
-            streambuf* orig = cout.rdbuf();
-
-            // Users experiment
-            fname = dir + "users_results_" + tag + ".csv";
-            ofstream f1(fname);
-            cout.rdbuf(f1.rdbuf());
-            usersExperiment(cfg);
-            f1.close();
-
-            // Context switch experiment
-            fname = dir + "ctxx_results_" + tag + ".csv";
-            ofstream f2(fname);
-            cout.rdbuf(f2.rdbuf());
-            contextSwitchExperiment(cfg);
-            f2.close();
-
-            // Thread pool experiment
-            fname = dir + "threadpool_results_" + tag + ".csv";
-            ofstream f3(fname);
-            cout.rdbuf(f3.rdbuf());
-            threadPoolExperiment(cfg);
-            f3.close();
-
-            cout.rdbuf(orig);
-            cout << "Done: " << tag << "\n";
-        }
-    }
-
-    // MVA baselines (S = Config default service_mean, Z = midpoint of think time)
-    double S = 0.8;
-    double Z = 3.5;
-
-    // FIFO: no context switch overhead in MVA
-    runMVA(dir + "mva_EXP_FIFO.csv", S, Z, 0);
-
-    // RR: add context switch overhead approximation
-    runMVA(dir + "mva_EXP_RR.csv", S, Z, 0.01);
-
-    cout << "All experiments complete. Results in " << dir << "\n";
-
-    return 0;
+    usersExperiment(cfg);
 }
+
+// int main()
+// {
+//     int max_users = 100;
+
+//     double S = 0.2;   
+//     double Z = 3.5;   
+
+//     vector<double> R(max_users + 1);
+//     vector<double> X(max_users + 1);
+//     vector<double> Q(max_users + 1);
+
+//     Q[0] = 0;
+
+//     cout << "Users,R_mva,X_mva\n";
+
+//     for(int N = 1; N <= max_users; N++)
+//     {
+//         R[N] = S * (1 + Q[N-1]);
+
+//         X[N] = N / (R[N] + Z);
+
+//         Q[N] = X[N] * R[N];
+
+//         cout << N << ","
+//              << fixed << setprecision(4)
+//              << R[N] << ","
+//              << X[N] << "\n";
+//     }
+
+//     return 0;
+// }
